@@ -1,0 +1,117 @@
+#  AWS CLI Commands & Steps (Project 1: IAM Privilege Escalation Lab)
+
+---
+
+##  1. Configure AWS CLI Profile for `lowPriv_nibba`
+
+
+aws configure --profile lowPriv_nibba
+```
+
+>  **Purpose:** Sets up AWS CLI access using the access key and secret key created for the `lowPriv_nibba`.
+
+---
+
+##  2. Assume the Admin Role via `lowPriv_nibba` Credentials
+
+
+aws sts assume-role \
+  --role-arn arn:aws:iam::<your-account-id>:role/AdminEscalationRole \
+  --role-session-name testSession \
+  --profile lowPriv_nibba
+```
+
+>  **Purpose:** Attempts to assume the `AdminEscalationRole`. This returns a JSON output containing:
+
+* `AccessKeyId`
+* `SecretAccessKey`
+* `SessionToken`
+
+---
+
+##  3. Export Temporary Credentials to Shell (From Step 2 Output)
+
+
+export AWS_ACCESS_KEY_ID="ASIA...your-temp-key"
+export AWS_SECRET_ACCESS_KEY="wJalr...your-secret"
+export AWS_SESSION_TOKEN="IQoJ...your-session-token"
+```
+
+>  **Purpose:** Sets the temporary environment variables so that subsequent AWS CLI commands use the **assumed admin role** identity.
+
+---
+
+##  4. Perform Admin-Level AWS CLI Actions
+
+###  A. List IAM Users
+
+
+aws iam list-users
+```
+
+>  **Purpose:** Confirms access to privileged IAM information.
+
+---
+
+###  B. Create an S3 Bucket
+
+
+aws s3api create-bucket --bucket escalation-lab-bucket --region us-east-1
+```
+
+>  **Purpose:** Demonstrates ability to create resources — confirming full admin rights.
+
+---
+
+###  C. (Optional) Create a New IAM User and Attach Admin Policy
+
+
+aws iam create-user --user-name tempadmin
+aws iam attach-user-policy \
+  --user-name tempadmin \
+  --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
+```
+
+>  **Purpose:** Escalates privileges further by creating a new backdoor admin user (optional for deeper scenarios).
+
+---
+
+##  Cleanup (After Documentation)
+
+
+terraform destroy
+```
+
+>  **Purpose:** Deletes all created IAM users, roles, and policies to avoid lingering security risks or potential billing.
+
+---
+
+##  Tip: Use This Section in Your GitHub README.md
+
+You can title it:
+
+```markdown
+## AWS CLI Commands & Execution Sequence
+```
+
+
+How to delete IAM Users access keys from cli:
+
+│ Error: deleting IAM User (lowPriv_nibba): operation error IAM: DeleteUser, https response error StatusCode: 409, RequestID: 6ef00e3b-c673-4476-adc5-86764d605b64, DeleteConflict: Cannot delete entity, must delete access keys first.
+│ 
+│
+ command 1: 
+ aws iam list-access-keys --user-name lowPriv_nibba
+
+{
+  "AccessKeyMetadata": [
+    {
+      "UserName": "lowPriv_nibba",
+      "AccessKeyId": "AKIA4SYAMW4KIZAAKDIF",
+      "Status": "Active",
+      "CreateDate": "2025-05-30T07:56:24+00:00"
+    }
+  ]
+}
+ command 2: 
+ aws iam delete-access-key --user-name lowPriv_nibba --access-key-id AKIA4SYAMW4KIZAAKDIF
