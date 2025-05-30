@@ -1,0 +1,136 @@
+# Project 1: AWS IAM Privilege Escalation – Detection & Response (Terraform Lab)
+
+##  Objective
+
+Simulate a real-world privilege escalation scenario using Terraform, detect it via AWS CloudTrail, and document detection strategies as if working in a production SOC.
+
+---
+
+##  Polished README.md (for GitHub)
+
+# IAM Privilege Escalation Detection Lab (AWS + Terraform)
+
+##  Overview
+
+This lab simulates a privilege escalation attack scenario in AWS where a low-privileged IAM user is able to assume an administrative role due to overly permissive IAM policies. It mirrors a common misconfiguration in cloud environments and provides a detection blueprint via CloudTrail.
+
+##  Objective
+
+* Understand how IAM privilege escalation occurs
+* Simulate a misconfigured access path
+* Detect and investigate the behavior using CloudTrail
+
+---
+
+##  Terraform Resources Created
+
+* **IAM User** (`lowPriv_nibba`): The low-privileged user
+* **IAM Policy**: Allows `lowPriv_nibba` to pass/assume roles
+* **IAM Role** (`AdminEscalationRole`): Escalated privilege target with admin access
+* **Role Attachment**: Grants `AdministratorAccess` to the role
+
+---
+
+##  Steps to Reproduce
+
+###  1. Create Working Directory
+
+mkdir iam-privilege-escalation-lab
+cd iam-privilege-escalation-lab
+```
+
+### 2. Create Terraform Files
+
+* `main.tf` (IAM setup)
+* `outputs.tf` (optional)
+
+### 3. Initialize Terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+###  4. Create Access Keys
+
+* Go to IAM Console → Users → `lowPriv_nibba` → Security Credentials
+* Generate new access keys
+
+###  5. Configure AWS CLI for `lowPriv_nibba`
+
+
+aws configure --profile lowPriv_nibba
+```
+
+###  6. Assume Role Using AWS CLI
+
+
+aws sts assume-role \
+  --role-arn arn:aws:iam::<account-id>:role/AdminEscalationRole \
+  --role-session-name testSession \
+  --profile lowPriv_nibba
+```
+
+###  7. Export Temporary Credentials
+
+
+export AWS_ACCESS_KEY_ID="<AccessKeyId>"
+export AWS_SECRET_ACCESS_KEY="<SecretAccessKey>"
+export AWS_SESSION_TOKEN="<SessionToken>"
+```
+
+###  8. Perform Admin-Level Actions
+
+
+aws iam list-users
+aws s3api create-bucket --bucket escalation-lab-bucket --region us-east-1
+```
+
+📸 *Screenshot 1: CLI output showing success of high-privilege actions. present in other folder
+
+###  9. Detect Activity in CloudTrail
+
+* Go to **CloudTrail → Event History**
+* Filter for:
+
+  * `AssumeRole`
+  * `ListUsers`, `CreateUser`, `CreateBucket`
+  * `PassRole`, `AttachUserPolicy`
+
+📸 *Screenshot 2: AssumeRole event in CloudTrail*, present in other folder
+📸 *Screenshot 3: Admin activity (e.g., ListUsers)*, present in other folder
+📸 *Screenshot 4: Expanded log with user identity, IP, event details*, present in other folder
+
+###  10. Destroy Resources
+
+
+terraform destroy
+```
+
+---
+
+##  Detection & Response Strategy
+
+### 🔎 Detection
+
+* Monitor `AssumeRole` from non-admin users
+* Watch for `PassRole` + `AttachUserPolicy` patterns
+* Review `userIdentity.arn` to trace original actor
+
+###  Response Plan
+
+* Revoke access keys / role sessions
+* Audit IAM role trust policies
+* Review API usage history for lateral movement
+* Patch overly permissive policies
+
+---
+
+##  Hardening Recommendations
+
+* Enforce **least privilege** on IAM policies
+* Deny wildcard actions like `iam:*` or `sts:*` in SCPs
+* Use **IAM Access Analyzer** to visualize trust boundaries
+* Enable **CloudTrail in all regions** and forward to a SIEM
+* Automate anomaly alerts for privilege escalation paths
+
+---
