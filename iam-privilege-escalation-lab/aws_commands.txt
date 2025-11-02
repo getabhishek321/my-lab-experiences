@@ -6,7 +6,7 @@
 
 
 aws configure --profile lowPriv_nibba
-```
+
 
 >  **Purpose:** Sets up AWS CLI access using the access key and secret key created for the `lowPriv_nibba`.
 
@@ -19,7 +19,7 @@ aws sts assume-role \
   --role-arn arn:aws:iam::<your-account-id>:role/AdminEscalationRole \
   --role-session-name testSession \
   --profile lowPriv_nibba
-```
+
 
 >  **Purpose:** Attempts to assume the `AdminEscalationRole`. This returns a JSON output containing:
 
@@ -35,7 +35,7 @@ aws sts assume-role \
 export AWS_ACCESS_KEY_ID="ASIA...your-temp-key"
 export AWS_SECRET_ACCESS_KEY="wJalr...your-secret"
 export AWS_SESSION_TOKEN="IQoJ...your-session-token"
-```
+
 
 >  **Purpose:** Sets the temporary environment variables so that subsequent AWS CLI commands use the **assumed admin role** identity.
 
@@ -47,17 +47,17 @@ export AWS_SESSION_TOKEN="IQoJ...your-session-token"
 
 
 aws iam list-users
-```
+
 
 >  **Purpose:** Confirms access to privileged IAM information.
 
----
+
 
 ###  B. Create an S3 Bucket
 
 
 aws s3api create-bucket --bucket escalation-lab-bucket --region us-east-1
-```
+
 
 >  **Purpose:** Demonstrates ability to create resources — confirming full admin rights.
 
@@ -70,7 +70,7 @@ aws iam create-user --user-name tempadmin
 aws iam attach-user-policy \
   --user-name tempadmin \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
-```
+
 
 >  **Purpose:** Escalates privileges further by creating a new backdoor admin user (optional for deeper scenarios).
 
@@ -80,7 +80,7 @@ aws iam attach-user-policy \
 
 
 terraform destroy
-```
+
 
 >  **Purpose:** Deletes all created IAM users, roles, and policies to avoid lingering security risks or potential billing.
 
@@ -90,9 +90,8 @@ terraform destroy
 
 You can title it:
 
-```markdown
 ## AWS CLI Commands & Execution Sequence
-```
+
 
 
 How to delete IAM Users access keys from cli:
